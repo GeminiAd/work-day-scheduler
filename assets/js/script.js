@@ -176,9 +176,13 @@ function updateDateTimeText() {
  *      4. Save to local storage.
  */
 function saveOnClick(event) {
-    
     var saveButton;
 
+    /* 
+     *  This is an unintended consequence of event delegation: because I attached a listener on click to the save button, the icon
+     *  will also have a respond to a click event. The following code checks to see if the icon was clicked and sets the save button
+     *  accordingly, as I have information saved about what index in scheduleText the saved text should be assigned to.
+     */
     if ($(event.target).is("i")) {
         saveButton = $(event.target).parent();
     } else {
