@@ -12,8 +12,103 @@ var currentDateTimeElement;
  */
 var scheduleText;
 
+/* Checks the currentDateTimeMoment to see if we have just hit a new day. Returns true if it is a new day, false otherwise. */
+function checkIfNewDay() {
+    var hour = currentDateTimeMoment.hour();
+    var minute = currentDateTimeMoment.minute();
+    var second = currentDateTimeMoment.second();
+
+    if ((hour === 0) && (minute===0) && (second===0)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/* Checks the currentDateTimeMoment to see if we have hit a new hour. Returns true if we have just hit a new hour, false otherwise. */
+function checkIfNewHour() {
+    var minute = currentDateTimeMoment.minute();
+    var second = currentDateTimeMoment.second();
+
+    if (minute === 0 && second === 0) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 function createEmptySchedule() {
     scheduleText = ["", "", "", "", "", "", "", "", ""];
+}
+
+/*
+ *  Handles the situation where the user has the application open and the day switches.
+ *  In this case, I would have to:
+ *      1. Reset any work day schedule text that we have, as it is now invalid.
+ *      2. We can save our schedule at this point, just to indicate there is no data for today yet.
+ *      3. We want to remove all of the rows that are children of the div with class container.
+ *      4. We want to use initializeTimeBlocks to regenerate the time blocks, only all the hours will be in the future.
+ */
+function handleDayChange() {
+    /* 1. Reset any work day schedule text that we have, as it is now invalid. */
+    resetSchedule();
+
+    /* 2. We can save our schedule at this point, just to indicate there is no data for today yet. */
+    saveSchedule();
+
+    /* 3. We want to remove all of the rows that are children of the div with class container. */
+    $(".container").children().remove();
+
+    /* 4. We want to use initializeTimeBlocks to regenerate and render the time blocks, only all the hours will be in the future. */
+    initializeTimeBlocks();
+}
+
+/*
+ *  Handles the situation where the user has the application open and the hour switches. We only care if the hour switches to the hours of
+ *  8AM, 9AM, 10AM, 11AM, 12PM, 1PM, 2PM, 3PM, 4PM, 5PM, and 6PM, as we have to update the color of the rows depending if the hour is current or past.
+ *  
+ *  In order to handle the hour change we have to:
+ *      1. Get the hour, see if we are between 9AM and 6PM. If we're not, we can quit immediately.
+ *      2. Otherwise, if the hour is 9AM, we just have to update the textarea in the 9AM row to be present.
+ *      3. If we are at hour 18, we just have to update the timeblock corresponding to the previous hour to be in the past.
+ *      4. If we are at hour 10, 11, 12, 13, 14, 15, 16, or 17, we have to update the time block of the current hour to be present, and the timeblock
+ *         of the previous hour to be past.
+ */
+function handleHourChange() {
+    /* 1. Get the hour, see if we are between 9AM and 6PM. If we're not, we can quit immediately. */
+    var hour = currentDateTimeMoment.hour();
+
+    if (hour < 9 || hour > 18) {
+        return;
+    }
+
+    var textAreaToManipulate;
+
+    /* 2. Otherwise, if the hour is 9AM, we just have to update the textarea in the 9AM row to be present from the future. */
+    if (hour === 9) {
+        textAreaToManipulate = $("#hour-"+hour);
+        textAreaToManipulate.removeClass("future");
+        textAreaToManipulate.addClass("present");
+    } 
+    /* 3. If we are at hour 18, we just have to update the timeblock corresponding to the previous hour to be in the past from the present. */
+    else if (hour === 18) {
+        textAreaToManipulate = $("#hour-"+hour-1);
+        textAreaToManipulate.removeClass("present");
+        textAreaToManipulate.addClass("past");
+    }
+    /*
+     *  4. If we are at hour 10, 11, 12, 13, 14, 15, 16, or 17, we have to update the time block of the current hour to be present from future, 
+     *     and the timeblock of the previous hour to be past from present.
+     */
+    else {
+        textAreaToManipulate = $("#hour-"+hour);
+        textAreaToManipulate.removeClass("future");
+        textAreaToManipulate.addClass("present");
+
+        textAreaToManipulate = $("#hour-"+hour-1);
+        textAreaToManipulate.removeClass("present");
+        textAreaToManipulate.addClass("past");
+    }
 }
 
 /* 
@@ -22,9 +117,8 @@ function createEmptySchedule() {
  */
 function initializeDateTimeText() {
     currentDateTimeMoment = moment()
+    currentDateTimeMoment.millisecond(0); // To keep things simple, I'm not going to worry about milliseconds.
     currentDateTimeElement = $("#currentDay");
-
-    console.log(currentDateTimeMoment);
 
     updateDateTimeText();
 
@@ -84,6 +178,7 @@ function initializeTimeBlocks() {
         /* 3. c. Create a text area. */
         var textArea = $("<textarea>");
         textArea.addClass("col-lg-10");
+        textArea.id = "hour-"+hours[i]; // Should give hour-9, hour-10, etc. as the IDs for easy selecting
 
         /* 3. a. i. If the current time is before the hour that we are looking at, style the text area as future. */
         if (currentDateTimeMoment.isBefore(hourMoments[i])) {
@@ -155,16 +250,39 @@ function loadSavedSchedule() {
     }
 }
 
-/* Starts time incrementing so that if the time updates the hour that we are on, the scheduler updates as well. */
-function startTime() {
-    var timeInterval = setInterval(function() {
-        currentDateTimeMoment.add(1, "s");
-        updateDateTimeText();
-    }, 1000);
+/* Same as create empty schedule. */
+function resetSchedule() {
+    createEmptySchedule();
 }
 
-function updateDateTimeText() {
-    currentDateTimeElement.text(currentDateTimeMoment.format("dddd, MMMM Do, YYYY   HH:mm:ss"));
+/* 
+ *  Starts time incrementing so that if the time updates the hour that we are on, the scheduler updates as well.
+ *  At each time interval we have to:
+ *      1. Add one second to our moment representing the current date and time.
+ *      2. Update the date/time text. This is only necessary as I am displaying the seconds for testing purposes.
+ *      3. Check to see if it is a new day. If it is, we handle the day change.
+ *      4. If it isn't a new day, check to see if it's a new hour. If it's a new hour, handle the new hour.
+ */
+function startTime() {
+    var timeInterval = setInterval(function() {
+        /* 1. Add one second to our moment representing the current date and time. */
+        currentDateTimeMoment.add(1, "s");
+
+        /* 2. Update the date/time text. This is only necessary as I am displaying the seconds for testing purposes. */
+        updateDateTimeText();
+
+        /* 3. Check to see if it is a new day. If it is, we handle the day change. */
+        var isNewDay = checkIfNewDay();
+        if (isNewDay) {
+            handleDayChange();
+        } else{
+            /* 4. If it isn't a new day, check to see if it's a new hour. If it's a new hour, handle the new hour. */
+            var isNewHour = checkIfNewHour();
+            if (isNewHour) {
+                handleHourChange();
+            }
+        }
+    }, 1000);
 }
 
 /*
@@ -180,8 +298,8 @@ function saveOnClick(event) {
 
     /* 
      *  This is an unintended consequence of event delegation: because I attached a listener on click to the save button, the icon
-     *  will also have a respond to a click event. The following code checks to see if the icon was clicked and sets the save button
-     *  accordingly, as I have information saved about what index in scheduleText the saved text should be assigned to.
+     *  will also respond to a click event. The following code checks to see if the icon was clicked and sets the save button
+     *  accordingly, as I have information saved in the button about what index in scheduleText the saved text should be assigned to.
      */
     if ($(event.target).is("i")) {
         saveButton = $(event.target).parent();
@@ -207,7 +325,7 @@ function saveOnClick(event) {
  *  Saves the schedule.
  *  To save the schedule we need to:
  *      1. Save a moment corresponding to the day this schedule exists.
- *      2. Save the schedule text
+ *      2. Save the schedule text.
  */
 function saveSchedule() {
     /* 1. Save a moment corresponding to the day this schedule exists. */
@@ -218,6 +336,10 @@ function saveSchedule() {
     /* 2. Save the schedule text. */
     var stringifiedScheduleText = JSON.stringify(scheduleText);
     localStorage.setItem("scheduleText", stringifiedScheduleText);
+}
+
+function updateDateTimeText() {
+    currentDateTimeElement.text(currentDateTimeMoment.format("dddd, MMMM Do, YYYY   HH:mm:ss"));
 }
 
 initializeDateTimeText();
