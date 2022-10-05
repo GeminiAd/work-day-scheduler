@@ -24,11 +24,17 @@ function initializeDateTimeText() {
     currentDateTimeMoment = moment()
     currentDateTimeElement = $("#currentDay");
 
+    console.log(currentDateTimeMoment);
+
     updateDateTimeText();
 
     startTime();
 }
 
+/*
+ *  Generates each timeblock row and appends it to the element with the class of container, effectively rendering it on screen.
+ *  
+ */
 function initializeTimeBlocks() {
     var hours = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
     var hourMoments = [];
@@ -69,10 +75,13 @@ function initializeTimeBlocks() {
 
         var saveButton = $("<button>");
         saveButton.addClass("saveBtn col-lg-1");
+        saveButton.attr("index", i);
         
         var saveIcon = $("<i>");
         saveIcon.addClass("far fa-save");
         saveButton.append(saveIcon);
+
+        saveButton.on("click", saveOnClick);
 
         row.append(saveButton);
 
@@ -100,7 +109,7 @@ function loadSavedSchedule() {
         createEmptySchedule();
     } else {
         /* 2. If there is data, check to see if it is the same day as today. */
-        var savedMoment = JSON.parse(stringifiedSavedMoment);
+        var savedMoment = moment(JSON.parse(stringifiedSavedMoment));
 
         /* 2. a. If the data is from a different day, create an empty schedule. */
         if (!savedMoment.isSame(currentDateTimeMoment, "day")) {
@@ -124,6 +133,55 @@ function startTime() {
 
 function updateDateTimeText() {
     currentDateTimeElement.text(currentDateTimeMoment.format("dddd, MMMM Do, YYYY   HH:mm:ss"));
+}
+
+/*
+ *  Logic for when the save button is clicked.
+ *  When the save button is clicked we need to:
+ *      1. Get the text from the save area to save.
+ *      2. Get the index in scheduleText that this text is saved to.
+ *      3. Set the text in scheduleText that corresponds to this time block equal to the input text.
+ *      4. Save to local storage.
+ */
+function saveOnClick(event) {
+    
+    var saveButton;
+
+    if ($(event.target).is("i")) {
+        saveButton = $(event.target).parent();
+    } else {
+        saveButton = $(event.target);
+    }
+
+    /* 1. Get the text from the save area to save. */
+    var saveTextArea = saveButton.parent().children("textarea").eq(0);
+    var textToSave = saveTextArea.val();
+
+    /* 2. Get the index in scheduleText that this text is saved to. */
+    var index = parseInt(saveButton.attr("index"));
+    
+    /* 3. Set the text in scheduleText that corresponds to this time block equal to the input text. */
+    scheduleText[index] = textToSave;
+
+    /* 4. Save to local storage. */
+    saveSchedule();
+}
+
+/*
+ *  Saves the schedule.
+ *  To save the schedule we need to:
+ *      1. Save a moment corresponding to the day this schedule exists.
+ *      2. Save the schedule text
+ */
+function saveSchedule() {
+    /* 1. Save a moment corresponding to the day this schedule exists. */
+    var momentToSave = moment();
+    var stringifiedMoment = JSON.stringify(momentToSave);
+    localStorage.setItem("scheduleDate", stringifiedMoment);
+
+    /* 2. Save the schedule text. */
+    var stringifiedScheduleText = JSON.stringify(scheduleText);
+    localStorage.setItem("scheduleText", stringifiedScheduleText);
 }
 
 initializeDateTimeText();
