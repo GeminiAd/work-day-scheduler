@@ -92,7 +92,7 @@ function handleHourChange() {
     } 
     /* 3. If we are at hour 18, we just have to update the timeblock corresponding to the previous hour to be in the past from the present. */
     else if (hour === 18) {
-        textAreaToManipulate = $("#hour-"+hour-1);
+        textAreaToManipulate = $("#hour-"+(hour-1));
         textAreaToManipulate.removeClass("present");
         textAreaToManipulate.addClass("past");
     }
@@ -105,7 +105,7 @@ function handleHourChange() {
         textAreaToManipulate.removeClass("future");
         textAreaToManipulate.addClass("present");
 
-        textAreaToManipulate = $("#hour-"+hour-1);
+        textAreaToManipulate = $("#hour-"+(hour-1));
         textAreaToManipulate.removeClass("present");
         textAreaToManipulate.addClass("past");
     }
@@ -178,7 +178,7 @@ function initializeTimeBlocks() {
         /* 3. c. Create a text area. */
         var textArea = $("<textarea>");
         textArea.addClass("col-lg-10");
-        textArea.id = "hour-"+hours[i]; // Should give hour-9, hour-10, etc. as the IDs for easy selecting
+        textArea.attr("id", "hour-"+hours[i]); // Should give hour-9, hour-10, etc. as the IDs for easy selecting
 
         /* 3. a. i. If the current time is before the hour that we are looking at, style the text area as future. */
         if (currentDateTimeMoment.isBefore(hourMoments[i])) {
