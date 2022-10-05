@@ -33,13 +33,33 @@ function initializeDateTimeText() {
 
 /*
  *  Generates each timeblock row and appends it to the element with the class of container, effectively rendering it on screen.
- *  
+ *  This function needs to be called once per day. As I use the moment functions isAfter and isBetween to style the text boxes, the
+ *  day/month/year has to be the same as the current day. This function also assumes that the div container is empty, so if this
+ *  function is to be called again, the container div needs to be emptied.
+ * 
+ *  In order to generate the time blocks, I have to:
+ *      1. Create an array that represents the hours in our work day scheduler. I'm including one extra hour - 6PM - as I'm using the moment
+ *         function isBetween to see if we are in between two hours, so at hour 5 I need to compare if we are in between 5 and 6.
+ *      2. Create the moments that correspond to each time block segment.
+ *      3. For each moment except the last one (for reasons stated above), we have to:
+ *          a. Create a div with the class of row.
+ *          b. Create a label with the hour and AM/PM, and then append it to our row.
+ *          c. Create a text area.
+ *              i.      If the current time is before the hour that we are looking at, style the text area as future.
+ *              ii.     If the current time is after the hour we are looking at and before the next hour, style the text as current.
+ *              iii.    Otherwise, style the text as past.
+ *          d. Set the text of the text area to any values we have saved, append the text area to the row element.
+ *          e. Create a save button, add a save icon to it, attach a listener on click to save it, and append the save button to the row.
+ *          f. Append the row to the container element.
  */
 function initializeTimeBlocks() {
+    /* 1. Create an array that represents the hours in our work day scheduler. */
     var hours = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
+
+    /* 2. Create the moments that correspond to each time block segment. */
     var hourMoments = [];
     for (var i = 0; i < hours.length; i++) {
-        var momentToAdd = new moment(currentDateTimeMoment);
+        var momentToAdd = new moment();
         momentToAdd.hour(hours[i]);
         momentToAdd.minute(0);
         momentToAdd.second(0);
@@ -48,31 +68,42 @@ function initializeTimeBlocks() {
         hourMoments.push(momentToAdd)
     }
 
+    /* 3. For each moment except the last one (for reasons stated above), we have to: */
     for (var i = 0; i < hourMoments.length-1; i++) {
+        /* 3. a. Create a div with the class of row. */
         var row = $("<div>");
         row.addClass("row");
 
+        /* 3. b. Create a label with the hour and AM/PM, and then append it to our row. */
         var hour = $("<label>");
         hour.addClass("hour p-3 text-right col-lg-1");
         hour.text(hourMoments[i].format("hA"));
         
         row.append(hour);
 
+        /* 3. c. Create a text area. */
         var textArea = $("<textarea>");
         textArea.addClass("col-lg-10");
 
+        /* 3. a. i. If the current time is before the hour that we are looking at, style the text area as future. */
         if (currentDateTimeMoment.isBefore(hourMoments[i])) {
             textArea.addClass("future");
-        } else if (currentDateTimeMoment.isBetween(hourMoments[i], hourMoments[i+1], "[)")) {
+        } 
+        /* 3. a. ii. If the current time is after the hour we are looking at and before the next hour, style the text as current. */
+        else if (currentDateTimeMoment.isBetween(hourMoments[i], hourMoments[i+1], "[)")) {
             textArea.addClass("present");
-        } else {
+        } 
+        /* 3. a. iii. Otherwise, style the text as past.. */
+        else {
             textArea.addClass("past");
         }
 
+        /* 3. d. Set the text of the text area to any values we have saved, append the text area to the row element. */
         textArea.text(scheduleText[i]);
 
         row.append(textArea);
 
+        /* 3. e. Create a save button, add a save icon to it, attach a listener on click to save it, and append the save button to the row. */
         var saveButton = $("<button>");
         saveButton.addClass("saveBtn col-lg-1");
         saveButton.attr("index", i);
@@ -85,6 +116,7 @@ function initializeTimeBlocks() {
 
         row.append(saveButton);
 
+        /* 3. f. Append the row to the container element. */
         $(".container").append(row);
     }
 }
