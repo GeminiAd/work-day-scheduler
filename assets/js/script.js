@@ -177,14 +177,14 @@ function initializeTimeBlocks() {
 
         /* 3. b. Create a label with the hour and AM/PM, and then append it to our row. */
         var hour = $("<label>");
-        hour.addClass("hour p-3 text-right col-lg-1");
+        hour.addClass("hour p-3 text-break text-right col-1 col-sm-1 col-md-1 col-lg-1 col-xl-1");
         hour.text(hourMoments[i].format("hA"));
         
         row.append(hour);
 
         /* 3. c. Create a text area. */
         var textArea = $("<textarea>");
-        textArea.addClass("col-lg-10");
+        textArea.addClass("col-10 col-sm-10 col-md-10 col-lg-10 col-xl-10 text-dark");
         textArea.attr("id", "hour-"+hours[i]); // Should give hour-9, hour-10, etc. as the IDs for easy selecting
 
         /* 3. a. i. If the current time is before the hour that we are looking at, style the text area as future. */
@@ -207,7 +207,7 @@ function initializeTimeBlocks() {
 
         /* 3. e. Create a save button, add a save icon to it, attach a listener on click to save it, and append the save button to the row. */
         var saveButton = $("<button>");
-        saveButton.addClass("saveBtn col-lg-1");
+        saveButton.addClass("saveBtn col-1 col-sm-1 col-md-1 col-lg-1 col-xl-1");
         saveButton.attr("index", i);
         
         var saveIcon = $("<i>");
