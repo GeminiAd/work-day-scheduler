@@ -28,7 +28,7 @@ This is just a simple work day application. The date and time are showed at the 
 
 Navigate to: <https://geminiad.github.io/work-day-scheduler>
 
-Enter a task in the text area for a time block and hit the save button! That task will be saved for the rest of the day.
+Enter a task in the text area for a time block and hit the save button! That task - and only that task - will be saved for the rest of the day.
 
 ## Technologies Used
 
