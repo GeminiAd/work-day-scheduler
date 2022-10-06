@@ -294,7 +294,7 @@ function startTime() {
         /* 5. Handle if our internal clock drifts too much from the current time. */
         var now = moment();
         /* If the difference between the current time and our saved time is greater than a minute. */
-        if (now.diff(currentDateTimeMoment, "minutes") > 1) {
+        if (now.diff(currentDateTimeMoment, "seconds") > 30) {
             /* Let's stop the timer, clear out the container, and reinitialize everything as there's no guarantee how much time we're off by. */
             clearInterval(timeInterval);
             $(".container").empty();
