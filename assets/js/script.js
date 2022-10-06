@@ -300,6 +300,7 @@ function startTime() {
             $(".container").empty();
             initializeSchedule();
         }
+        
     }, 1000);
 }
 
