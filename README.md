@@ -4,7 +4,7 @@
 
 ------------------------------------------------------
 
-![Work Day Scheduler Demo](./assets/images/work-day-scheduler.gif)
+![Work Day Scheduler Demo](./assets/images/work-day-scheduler-demo.gif)
 
 <a href="#description">Description</a> •
 <a href="#key-features">Key Features</a> •
