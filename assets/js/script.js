@@ -111,6 +111,13 @@ function handleHourChange() {
     }
 }
 
+/* Initializes the schedule. This function assumes the div with class container is empty. */
+function initializeSchedule() {
+    initializeDateTimeText();
+    loadSavedSchedule();
+    initializeTimeBlocks();
+}
+
 /* 
  *  Initialization of the current date and time goes here.
  *  Since we have to check for any schedule text that the user may have saved for the day, this function must be called before any other function.
@@ -153,7 +160,7 @@ function initializeTimeBlocks() {
     /* 2. Create the moments that correspond to each time block segment. */
     var hourMoments = [];
     for (var i = 0; i < hours.length; i++) {
-        var momentToAdd = new moment();
+        var momentToAdd = new moment(currentDateTimeMoment); // Just create a moment with the same day, month and year
         momentToAdd.hour(hours[i]);
         momentToAdd.minute(0);
         momentToAdd.second(0);
@@ -262,6 +269,7 @@ function resetSchedule() {
  *      2. Update the date/time text. This is only necessary as I am displaying the seconds for testing purposes.
  *      3. Check to see if it is a new day. If it is, we handle the day change.
  *      4. If it isn't a new day, check to see if it's a new hour. If it's a new hour, handle the new hour.
+ *      5. Handle if our internal clock drifts too much from the current time.
  */
 function startTime() {
     var timeInterval = setInterval(function() {
@@ -281,6 +289,16 @@ function startTime() {
             if (isNewHour) {
                 handleHourChange();
             }
+        }
+
+        /* 5. Handle if our internal clock drifts too much from the current time. */
+        var now = moment();
+        /* If the difference between the current time and our saved time is greater than a minute. */
+        if (now.diff(currentDateTimeMoment, "minutes") > 1) {
+            /* Let's stop the timer, clear out the container, and reinitialize everything as there's no guarantee how much time we're off by. */
+            clearInterval(timeInterval);
+            $(".container").empty();
+            initializeSchedule();
         }
     }, 1000);
 }
@@ -342,6 +360,4 @@ function updateDateTimeText() {
     currentDateTimeElement.text(currentDateTimeMoment.format("dddd, MMMM Do, YYYY   HH:mm:ss"));
 }
 
-initializeDateTimeText();
-loadSavedSchedule();
-initializeTimeBlocks();
+initializeSchedule();
