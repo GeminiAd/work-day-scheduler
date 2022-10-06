@@ -22,7 +22,7 @@ This is just a simple work day application. The date and time are showed at the 
 
 - Keep track of your schedule for the day.
 - Color coded so you know what tasks have passed, what task you are currently on, and what tasks are in the future.
-- Boasts a responsive design. Looks good on dektop, tablet, and mobile.
+- Boasts a responsive design. Looks good on desktop, tablet, and mobile.
 
 ## Usage
 
@@ -34,8 +34,8 @@ Enter a task in the text area for a time block and hit the save button! That tas
 
 - [jQuery](https://jquery.com/)
 - [Bootstrap](https://getbootstrap.com/)
-- [FontAwesome Icons](https://fontawesome.com/)
-- JavaScript
+- [Moment.js](https://momentjs.com/)
+- [JavaScript](https://www.javascript.com/)
 - CSS
 - HTML
 
